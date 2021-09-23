@@ -3,6 +3,7 @@ package me.jennyleeee.tutorial.jwt
 import io.jsonwebtoken.*
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
+import me.jennyleeee.tutorial.entity.Authority
 import me.jennyleeee.tutorial.entity.User
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.InitializingBean
@@ -19,18 +20,26 @@ import java.util.stream.Collectors
 
 @Component
 class TokenProvider(
-  @Value("\${jwt.secret}") _secret:String,
-  @Value("\${jwt.token-validity-in-seconds}") _tokenValidityInSeconds: Long
-): InitializingBean {
+  @Value("\${jwt.secret}") private val _secret: String,
+  @Value("\${jwt.token-validity-in-seconds}") private val _tokenValidityInSeconds: Long
+) : InitializingBean {
   
-  private val AUTHORITIES_KEY = "auth"
-  private var key: Key ?= null
+  init {
+    println("create TokenProvider")
+    println("_secret $_secret")
+    println("_tokenValidityInSeconds $_tokenValidityInSeconds")
+  }
+  
+  lateinit var key: Key
+  
   val secret = _secret
   val tokenValidityInSeconds = _tokenValidityInSeconds * 1000
+  
   private val logger = LoggerFactory.getLogger(TokenProvider::class.java)
   
-  fun createToken(authentication: Authentication):String {
-    val authorities = authentication.authorities.stream().map (GrantedAuthority::getAuthority).collect(Collectors.joining(","))
+  fun createToken(authentication: Authentication): String {
+    val authorities =
+      authentication.authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(","))
     val now: Long = Date().time
     val validity: Date = Date(now + this.tokenValidityInSeconds)
     
@@ -51,16 +60,22 @@ class TokenProvider(
       .parseClaimsJws(token)
       .body
     
-    val authorities: Collection<GrantedAuthority> = Arrays.stream(claims[AUTHORITIES_KEY]
-        .toString().split(",").toTypedArray())
-        .map { SimpleGrantedAuthority(it) }
-        .collect(Collectors.toList())
-
-
-    val principal = User(claims.subject,"",authorities)
+    val authorities: Collection<GrantedAuthority> = Arrays.stream(
+      claims[AUTHORITIES_KEY]
+        .toString()
+        .split(",")
+        .toTypedArray()
+    ).map(::SimpleGrantedAuthority).collect(Collectors.toList()).toSet()
+    
+    val principal = User(
+      userName = claims.subject,
+      nickName = "",
+      authorities = authorities as Set<Authority>
+    )
+    
     return UsernamePasswordAuthenticationToken(principal, token, authorities)
   }
-
+  
   
   fun validateToken(token: String): Boolean {
     try {
@@ -87,6 +102,10 @@ class TokenProvider(
      */
     val keyBytes = Decoders.BASE64.decode(secret)
     this.key = Keys.hmacShaKeyFor(keyBytes)
+  }
+  
+  companion object {
+    const val AUTHORITIES_KEY = "auth"
   }
 }
 

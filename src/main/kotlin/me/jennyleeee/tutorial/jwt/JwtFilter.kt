@@ -16,7 +16,6 @@ import javax.servlet.http.HttpServletRequest
 class JwtFilter(private val tokenProvider: TokenProvider): GenericFilterBean() {
   
   private val logger = LoggerFactory.getLogger(JwtFilter::class.java)
-  private val AUTHORIZATION_HEADER = "Authorization"
   
   @Throws(IOException::class, ServletException::class)
   override fun doFilter(request: ServletRequest?, response: ServletResponse?, chain: FilterChain?) {
@@ -45,5 +44,9 @@ class JwtFilter(private val tokenProvider: TokenProvider): GenericFilterBean() {
       return bearerToken.substring(7)
     }
     return null
+  }
+  
+  companion object {
+    const val AUTHORIZATION_HEADER = "Authorization"
   }
 }
