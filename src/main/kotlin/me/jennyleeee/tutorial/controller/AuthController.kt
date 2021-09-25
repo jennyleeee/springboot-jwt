@@ -25,9 +25,11 @@ class AuthController (val tokenProvider: TokenProvider, val authenticationManage
   @PostMapping("/authenticate")
   fun authorize(@Valid @RequestBody loginDto: LoginDto): ResponseEntity<TokenDto> {
     val authenticationToken = UsernamePasswordAuthenticationToken(loginDto.username, loginDto.password)
+    print("authenticationToken -> $authenticationToken")
     val authentication: Authentication = authenticationManagerBuilder.`object`.authenticate(authenticationToken)
+    print("authentication-> $authentication")
     val httpHeaders: HttpHeaders? = null
-    SecurityContextHolder.getContext().setAuthentication(authentication)
+    SecurityContextHolder.getContext().authentication = authentication
     
     val jwt:String = tokenProvider.createToken(authentication)
     httpHeaders?.add(JwtFilter.AUTHORIZATION_HEADER, "Bearer $jwt")

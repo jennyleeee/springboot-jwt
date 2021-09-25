@@ -24,12 +24,6 @@ class TokenProvider(
   @Value("\${jwt.token-validity-in-seconds}") private val _tokenValidityInSeconds: Long
 ) : InitializingBean {
   
-  init {
-    println("create TokenProvider")
-    println("_secret $_secret")
-    println("_tokenValidityInSeconds $_tokenValidityInSeconds")
-  }
-  
   lateinit var key: Key
   
   val secret = _secret
@@ -41,7 +35,7 @@ class TokenProvider(
     val authorities =
       authentication.authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(","))
     val now: Long = Date().time
-    val validity: Date = Date(now + this.tokenValidityInSeconds)
+    val validity = Date(now + this.tokenValidityInSeconds)
     
     return Jwts.builder()
       .setSubject(authentication.name)
@@ -101,7 +95,7 @@ class TokenProvider(
      * key 변수에 할당하기 위함
      */
     val keyBytes = Decoders.BASE64.decode(secret)
-    this.key = Keys.hmacShaKeyFor(keyBytes)
+    key = Keys.hmacShaKeyFor(keyBytes)
   }
   
   companion object {
