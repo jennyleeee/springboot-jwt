@@ -1,5 +1,12 @@
 package me.jennyleeee.tutorial.dto
 
-data class TokenDto (
-  private val token: String
+import lombok.*
+
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+class TokenDto (
+  val token:String
  )

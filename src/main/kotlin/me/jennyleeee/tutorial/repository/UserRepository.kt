@@ -7,7 +7,6 @@ import java.util.*
 
 interface UserRepository: JpaRepository<User,Long> {
   
-  @EntityGraph("authorities") // lazy 조회 아니고 eager 조회
-  fun findOneWithAuthoritiesByUserName(name:String): Optional<User>
-  
+  @EntityGraph(attributePaths = ["authorities"]) // lazy 조회 아니고 eager 조회
+  fun findOneWithAuthoritiesByUserName(name: String): Optional<User>
 }
